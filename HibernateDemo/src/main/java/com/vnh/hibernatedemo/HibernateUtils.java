@@ -6,7 +6,13 @@ package com.vnh.hibernatedemo;
 
 
 import com.vnh.pojo.Category;
+import com.vnh.pojo.Comment;
+import com.vnh.pojo.OrderDetail;
+import com.vnh.pojo.ProdTag;
 import com.vnh.pojo.Product;
+import com.vnh.pojo.SaleOrder;
+import com.vnh.pojo.Tag;
+import com.vnh.pojo.User;
 import java.util.Properties;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
@@ -28,13 +34,19 @@ public class HibernateUtils {
         props.put(Environment.DIALECT, "org.hibernate.dialect.MySQLDialect");
         props.put(Environment.JAKARTA_JDBC_DRIVER, "com.mysql.cj.jdbc.Driver");
         props.put(Environment.JAKARTA_JDBC_USER, "root");
-        props.put(Environment.JAKARTA_JDBC_PASSWORD, "root");
+        props.put(Environment.JAKARTA_JDBC_PASSWORD, "16122003");
         props.put(Environment.JAKARTA_JDBC_URL, "jdbc:mysql://localhost/saledb");
         props.put(Environment.SHOW_SQL, "true");
         conf.setProperties(props);
         
         conf.addAnnotatedClass(Category.class);
         conf.addAnnotatedClass(Product.class);
+        conf.addAnnotatedClass(Comment.class);
+        conf.addAnnotatedClass(User.class);
+        conf.addAnnotatedClass(Tag.class);
+        conf.addAnnotatedClass(ProdTag.class);
+        conf.addAnnotatedClass(SaleOrder.class);
+        conf.addAnnotatedClass(OrderDetail.class);
         
         ServiceRegistry serviceRegistry = new StandardServiceRegistryBuilder().applySettings(conf.getProperties()).build();
                 

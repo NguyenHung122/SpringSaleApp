@@ -21,4 +21,9 @@ public class CategoryRepositoryImpl {
             return q.getResultList();
         }
     }
+    public Category getCateById(int id) {
+        try (Session s = HibernateUtils.getFACTORY().openSession()) {
+            return s.find(Category.class, id);
+        }
+    }
 }
