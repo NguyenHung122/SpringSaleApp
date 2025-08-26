@@ -1,5 +1,7 @@
 package com.vnh.repositories.impl;
+
 import com.vnh.pojo.Product;
+import com.vnh.repositories.ProductRepository;
 import jakarta.persistence.Query;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
@@ -12,100 +14,105 @@ import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-
 /**
  *
  * @author admin
  */
 @Repository
-public class ProductRepositoryImpl {
+@Transactional
+public class ProductRepositoryImpl implements ProductRepository{
+
     private static final int PAGE_SIZE = 8;
     @Autowired
     private LocalSessionFactoryBean factory;
     
+    @Override
     public List<Product> getProducts(Map<String, String> params) {
-        try (Session s = this.factory.getObject().openSession()) {
-            CriteriaBuilder b = s.getCriteriaBuilder();
-            CriteriaQuery<Product> query = b.createQuery(Product.class);
-            Root root = query.from(Product.class);
-            query.select(root);
-            
-            // lọc
-            if (params != null) {
-                List<Predicate> predicates = new ArrayList<>();
-                
-                String kw = params.get("kw");
-                if (kw != null && !kw.isEmpty())
-                    predicates.add(b.like(root.get("name"), String.format("%%%s%%", kw)));
-                
-                String fromPrice = params.get("fromPrice");
-                if (fromPrice != null && !fromPrice.isEmpty()) 
-                    predicates.add(b.greaterThanOrEqualTo(root.get("price"), fromPrice));
-                
-                String toPrice = params.get("toPrice");
-                if (toPrice != null && !toPrice.isEmpty()) 
-                    predicates.add(b.lessThanOrEqualTo(root.get("price"), toPrice));
-                
-                String cateId = params.get("cateId");
-                if (cateId != null && !cateId.isEmpty()) 
-                    predicates.add(b.equal(root.get("categoryId").as(Integer.class), cateId));
-                
-                query.where(predicates);
-                
-                 // sắp xếp
-                String orderBy = params.get("orderBy");
-                if (orderBy != null && !orderBy.isEmpty())
-                    query.orderBy(b.desc(root.get(orderBy)));
+        Session s = this.factory.getObject().getCurrentSession();
+        CriteriaBuilder b = s.getCriteriaBuilder();
+        CriteriaQuery<Product> query = b.createQuery(Product.class);
+        Root root = query.from(Product.class);
+        query.select(root);
+
+        // lọc
+        if (params != null) {
+            List<Predicate> predicates = new ArrayList<>();
+
+            String kw = params.get("kw");
+            if (kw != null && !kw.isEmpty()) {
+                predicates.add(b.like(root.get("name"), String.format("%%%s%%", kw)));
             }
-             
-           
-            Query q = s.createQuery(query);
-            
-            // phân trang LIMIT OFFSET
-            if (params != null) {
-                String p = params.getOrDefault("page", "1");
-                int page = Integer.parseInt(p);
-                
-                int start = (page - 1) * PAGE_SIZE;
-                
-                q.setMaxResults(PAGE_SIZE);
-                q.setFirstResult(start);
+
+            String fromPrice = params.get("fromPrice");
+            if (fromPrice != null && !fromPrice.isEmpty()) {
+                predicates.add(b.greaterThanOrEqualTo(root.get("price"), fromPrice));
             }
-            
-            return q.getResultList();
-                    
+
+            String toPrice = params.get("toPrice");
+            if (toPrice != null && !toPrice.isEmpty()) {
+                predicates.add(b.lessThanOrEqualTo(root.get("price"), toPrice));
+            }
+
+            String cateId = params.get("cateId");
+            if (cateId != null && !cateId.isEmpty()) {
+                predicates.add(b.equal(root.get("categoryId").as(Integer.class), cateId));
+            }
+
+            query.where(predicates);
+
+            // sắp xếp
+            String orderBy = params.get("orderBy");
+            if (orderBy != null && !orderBy.isEmpty()) {
+                query.orderBy(b.desc(root.get(orderBy)));
+            }
         }
-    }
-    
-     public void deleteProduct(int id) {
-        try (Session s = this.factory.getObject().openSession()) {
-            Product p = this.getProductById(id);
-            s.getTransaction().begin();
-            s.remove(p);
-            s.getTransaction().commit();
+
+        Query q = s.createQuery(query);
+
+        // phân trang LIMIT OFFSET
+        if (params != null) {
+            String p = params.getOrDefault("page", "1");
+            int page = Integer.parseInt(p);
+
+            int start = (page - 1) * PAGE_SIZE;
+
+            q.setMaxResults(PAGE_SIZE);
+            q.setFirstResult(start);
         }
+
+        return q.getResultList();
+
     }
-    
+    @Override
+    public void deleteProduct(int id) {
+        Session s = this.factory.getObject().getCurrentSession();
+        Product p = this.getProductById(id);
+        s.getTransaction().begin();
+        s.remove(p);
+        s.getTransaction().commit();
+
+    }
+    @Override
     public Product getProductById(int id) {
-        try (Session s = this.factory.getObject().openSession()) {
-            return s.find(Product.class, id);
-        }
+        Session s = this.factory.getObject().getCurrentSession();
+        return s.find(Product.class, id);
+
     }
-    
+    @Override
     public void addOrUpdate(Product p) {
-        try (Session s = this.factory.getObject().openSession()) {
-            s.getTransaction().begin();
-            if (p.getId() != null)
-                s.merge(p);
-            else
-                s.persist(p);
-            
-            s.getTransaction().commit();
+        Session s = this.factory.getObject().getCurrentSession();
+
+        if (p.getId() != null) {
+            s.merge(p);
+        } else {
+            s.persist(p);
         }
+
     }
 }

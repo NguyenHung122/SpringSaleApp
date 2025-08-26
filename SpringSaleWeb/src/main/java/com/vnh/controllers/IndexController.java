@@ -4,12 +4,14 @@
  */
 package com.vnh.controllers;
 
-import com.vnh.repositories.impl.CategoryRepositoryImpl;
-import com.vnh.repositories.impl.ProductRepositoryImpl;
+import com.vnh.services.CategoryServices;
+import com.vnh.services.ProductServices;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -18,18 +20,24 @@ import org.springframework.web.bind.annotation.RequestParam;
  * @author Nguyen Hung
  */
 @Controller
+@ControllerAdvice
 public class IndexController {
     
     @Autowired
-    private CategoryRepositoryImpl cateRepo;
+    private CategoryServices cateService;
     @Autowired
-    private ProductRepositoryImpl prodRepo;
+    private ProductServices proService;
     
-      @RequestMapping("/")
+    
+    @ModelAttribute
+    public void commonResponse(Model model) {
+        model.addAttribute("categories", this.cateService.getCates());
+    } 
+    
+    @RequestMapping("/")
     public String index(Model model, @RequestParam Map<String, String> params) {
         
-        model.addAttribute("categories", cateRepo.getCates());
-        model.addAttribute("products", prodRepo.getProducts(params));
+        model.addAttribute("products", this.proService.getProducts(params));
         return "index";
     }
 }
