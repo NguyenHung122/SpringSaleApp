@@ -12,4 +12,5 @@ import com.vnh.pojo.User;
  */
 public interface UserRepository {
     public User getUserByUsername(String username);
+    User addUser(User u);
 }

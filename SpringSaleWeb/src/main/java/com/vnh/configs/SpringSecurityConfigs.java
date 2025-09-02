@@ -49,7 +49,8 @@ public class SpringSecurityConfigs {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws
             Exception {
         http.csrf(c -> c.disable()).authorizeHttpRequests(requests
-                -> requests.requestMatchers("/", "/home", "/products/**", "/stats").authenticated())
+                -> requests.requestMatchers("/", "/home", "/products/**", "/stats").authenticated().
+                        requestMatchers("/api/**").permitAll())
                 .formLogin(form -> form.loginPage("/login")
                 .loginProcessingUrl("/login")
                 .defaultSuccessUrl("/", true)
